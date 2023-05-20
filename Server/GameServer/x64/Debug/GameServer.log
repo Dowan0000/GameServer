@@ -1,2 +1,3 @@
-﻿  LINK : C:\C++ GameServer\Server\Binary\Debug\GameServer.exe을(를) 찾을 수 없거나 마지막 증분 링크에 의해 빌드되지 않았습니다. 전체 링크를 수행하고 있습니다.
+﻿  GameServer.cpp
+C:\C++ GameServer\Server\GameServer\GameServer.cpp(26,12): warning C4834: 'nodiscard' 특성이 포함된 함수의 반환 값을 버리는 중
   GameServer.vcxproj -> C:\C++ GameServer\Server\Binary\Debug\GameServer.exe
