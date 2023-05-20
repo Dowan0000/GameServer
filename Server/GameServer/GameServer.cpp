@@ -11,13 +11,42 @@ vector<int32> v;
 // Mutual Exclusive
 mutex m;
 
+// RAII (Resource Acquisition Is Initialization)
+template<typename T>
+class LockGuard
+{
+public:
+	LockGuard(T& m)
+	{
+		_mutex = &m;
+		_mutex->lock();
+	}
+
+	~LockGuard()
+	{
+		_mutex->unlock();
+	}
+
+private:
+	T* _mutex;
+
+};
+
 void Push()
 {
 	for (int32 i = 0; i < 10'000; i++)
 	{
-		m.lock();
+		//LockGuard<std::mutex> lockGuard(m);
+		std::lock_guard<std::mutex> lockGuard(m);
+
+		//m.lock();
+		
 		v.push_back(i);
-		m.unlock();
+		
+		if (i == 5000)
+			break;
+
+		//m.unlock();
 	}
 		
 }
