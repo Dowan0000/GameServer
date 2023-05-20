@@ -4,44 +4,34 @@
 
 #include <thread>
 #include <atomic>
+#include <mutex>
 
-// atomic : All-Or-Nothing
-atomic<int32> sum = 0;
+vector<int32> v;
 
-void Add()
+// Mutual Exclusive
+mutex m;
+
+void Push()
 {
-	for (int32 i = 0; i < 1'000'000; i++)
+	for (int32 i = 0; i < 10'000; i++)
 	{
-		sum.fetch_add(1);
-		//sum++;
-		/*int32 eax = sum;
-		eax = eax + 1;
-		sum = eax;*/
+		m.lock();
+		v.push_back(i);
+		m.unlock();
 	}
-}
-
-void Sub()
-{
-	for (int32 i = 0; i < 1'000'000; i++)
-	{
-		sum.fetch_add(-1);
-		//sum--;
-		/*int32 eax = sum;
-		eax = eax - 1;
-		sum = eax;*/
-	}
+		
 }
 
 int main()
 {
-	Add();
-	Sub();
-	cout << sum << endl;
+	//v.reserve(20000);
 
-	std::thread t1(Add);
-	std::thread t2(Sub);
+	std::thread t1(Push);
+	std::thread t2(Push);
+
 	t1.join();
 	t2.join();
-	cout << sum << endl;
+
+	cout << v.size() << endl;
 
 }
