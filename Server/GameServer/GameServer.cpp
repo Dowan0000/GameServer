@@ -6,61 +6,43 @@
 #include <atomic>
 #include <mutex>
 
-vector<int32> v;
+#include "AccountManager.h"
+#include "UserManager.h"
 
-// Mutual Exclusive
-mutex m;
-
-// RAII (Resource Acquisition Is Initialization)
-template<typename T>
-class LockGuard
+void Func1()
 {
-public:
-	LockGuard(T& m)
+	for (int32 i = 0; i < 1000; i++)
 	{
-		_mutex = &m;
-		_mutex->lock();
+		UserManager::Instance()->ProcessSave();
 	}
+}
 
-	~LockGuard()
-	{
-		_mutex->unlock();
-	}
-
-private:
-	T* _mutex;
-
-};
-
-void Push()
+void Func2()
 {
-	for (int32 i = 0; i < 10'000; i++)
+	for (int32 i = 0; i < 1000; i++)
 	{
-		//LockGuard<std::mutex> lockGuard(m);
-		std::lock_guard<std::mutex> lockGuard(m);
-
-		//m.lock();
-		
-		v.push_back(i);
-		
-		if (i == 5000)
-			break;
-
-		//m.unlock();
+		AccountManager::Instance()->ProcessLogin();
 	}
-		
 }
 
 int main()
 {
-	//v.reserve(20000);
-
-	std::thread t1(Push);
-	std::thread t2(Push);
+	std::thread t1(Func1);
+	std::thread t2(Func2);
 
 	t1.join();
 	t2.join();
 
-	cout << v.size() << endl;
+	cout << "Jobs Done" << endl;
+
+	// 참고 
+	mutex m1;
+	mutex m2;
+
+	// m1, m2 순서가 아닌 내부적으로 판별해서 일관적인 순서를 보장함
+	std::lock(m1, m2);
+
+	//
+	lock_guard<mutex> g1(m1, std::adopt_lock);
 
 }
