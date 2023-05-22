@@ -12,40 +12,21 @@ public:
 	void lock()
 	{
 		// CAS (Compare-And-Swap)
-
 		bool expected = false;
 		bool desired = true;
 
-		// CAS 의사 코드
-		/*if (_locked == expected)
-		{
-			expected = _locked;
-			_locked = desired;
-			return true;
-		}
-		else
-		{
-			expected = _locked;
-			return false;
-		}*/
-
-		
 		while (_locked.compare_exchange_strong(expected, desired) == false)
 		{
 			expected = false;
-		}
 
-		/*while (_locked)
-		{
-
+			//this_thread::sleep_for(std::chrono::milliseconds(100));
+			this_thread::sleep_for(100ms);
+			this_thread::yield(); // == sleep_for(0ms)
 		}
-		
-		_locked = true;*/
 	}
 
 	void unlock()
 	{
-		//_locked = false;
 		_locked.store(false);
 	}
 
