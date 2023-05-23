@@ -5,63 +5,102 @@
 #include <thread>
 #include <atomic>
 #include <mutex>
-#include <Windows.h>
+#include <future>
 
-mutex m;
-queue<int32> q;
-HANDLE handle;
 
-// 참고) CV는 User-Level Object
-condition_variable cv;
-
-// condition_variable_any cv;
-
-void Producer()
+int64 Calculate()
 {
-	while (true)
-	{
-		// 1) Lock을 잡고, 2) 공유 변수 값을 수정
-		// 3) Lock을 풀고, 4) 조건변수 통해 다른 쓰레드에게 통지
+	int64 sum = 0;
 
-		{
-			unique_lock<mutex> lock(m);
-			q.push(100);
-		}
+	for (int32 i = 0; i < 100'000; i++)
+		sum += 1;
 
-		cv.notify_one(); // wait중인 쓰레드가 있으면 1개만 깨운다
-
-	}
+	return sum;
 }
 
-void Consumer()
+void PromiseWorker(std::promise<string>&& promise)
 {
-	while (true)
-	{
-		unique_lock<mutex> lock(m);
-		cv.wait(lock, []() {return q.empty() == false; });
-		// 1) Lock을 잡고, 2) 조건 확인
-		// ~ 만족 -> 빠져나와서 이어서 코드 진행
-		// ~ 만족x -> Lock을 풀어주고 대기 상태 -> lock_guard(x), unique_lock(o)
-
-		// notify_one을 했으면 항상 조건식을 만족하는거 아닐까?
-		// notify_one -> 얘가 락을 잡기전에 공유변수를 다른애가 건들수 있음
-		
-		{
-			int32 data = q.front();
-			q.pop();
-			cout << q.size() << endl;
-		}
-	}
+	promise.set_value("Secret");
 }
 
+void TaskWorker(std::packaged_task<int64(void)>&& task)
+{
+	task();
+}
 
 int main()
 {
+	// 동기(synchronous) 실행
+	/*int64 sum = Calculate();
+	cout << sum << endl;*/
 
-	thread t1(Producer);
-	thread t2(Consumer);
+	// std::future
+	{
+		// 비동기(asynchronous) 실행
+		// 1) deferred -> lazy evaluation 지연해서 실행
+		// 2) async -> 별도의 쓰레드를 만들어 실행
+		// 3) deferred | async -> 둘 중 알아서 실행해주세요
 
-	t1.join();
-	t2.join();
+		std::future<int64> future = std::async(std::launch::async, Calculate);
+		
+		// TODO
+		/*future_status status = future.wait_for(1ms);
+		if (status == future_status::ready)
+		{
+		 
+		}*/
+
+		int64 sum = future.get(); // 결과물이 필요할 때 받아옴
+		
+		/*class Knight
+		{
+		public:
+			int64 GetHP() { return 100; }
+		};*/
+
+		/*Knight knight;
+		std::future<int64> future2 = std::async(std::launch::async, &Knight::GetHP, knight); // knight.GetHP();*/
+
+
+		// std::promise
+		{
+			std::promise<string> promise;
+			std::future<string> future = promise.get_future();
+
+			thread t(PromiseWorker, std::move(promise));
+
+			string message = future.get();
+			cout << message << endl;
+
+			t.join();
+
+		}
+
+		// std::Packaged_task
+		{
+			std::packaged_task<int64(void)> task(Calculate);
+			std::future<int64> future = task.get_future();
+
+			std::thread t(TaskWorker, std::move(task));
+
+			int64 sum = future.get();
+			cout << sum << endl;
+
+			t.join();
+
+		}
+
+		// 결론)
+		// mutex나 condition_variable까지 가지 않고 단순한 애들을 처리할 수 있는 방법
+		// 특히 한 번 발생하는 이벤트에 유용
+
+		// 1) async
+		// 원하는 함수를 비동기 실행
+		// 2) promise
+		// 결과물을 promise를 통해 future로 받아줌
+		// 3) packaged_task
+		// 원하는 함수의 실행 결과를 packaged_task를 통해 future로 받아줌
+	}
+	
 
 }
