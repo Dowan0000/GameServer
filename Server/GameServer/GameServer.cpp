@@ -8,23 +8,43 @@
 #include <future>
 #include <Windows.h>
 
-
-atomic<int64> v;
+atomic<bool> flag;
 
 int main()
 {
-	// atomic 연산에 한해, 모든 쓰레드가 동일 객체에 대해서 동일한 수정 순서를 관찰 
+	flag = false;
 
-	cout << v.is_lock_free() << endl; // 1 : CPU or 컴파일러 자체적으로 원자적 연산
+	//flag = true;
+	flag.store(true, memory_order::memory_order_seq_cst);
 
-	struct Knight
+	//bool val = flag;
+	bool val = flag.load(memory_order::memory_order_seq_cst);
+
+	// 이전 flag 값을 prev에 넣고, flag 값을 수정
 	{
-		int32 level;
-		int32 hp;
-		int32 mp;
-	};
+		/*bool prev = flag;
+		flag = true;*/
+		bool prev = flag.exchange(true); // 값을 넣고 true로 바꾸는 과정을 한번에...
+	}
+	
+	// CAS (Compare - And - Swap) 조건부 수정
+	{
+		bool expected = false;
+		bool desired = true;
+		
+		/*if (flag == expected)
+		{
+			flag = desired;
+			return true;
+		}
+		else
+		{
+			expected = flag;
+			return false;
+		}*/
 
-	atomic<Knight> K;
-	cout << K.is_lock_free() << endl; // 0 : atomic에 의해 원자적 연산
+		flag.compare_exchange_strong(expected, desired);
+	}
+
 
 }
