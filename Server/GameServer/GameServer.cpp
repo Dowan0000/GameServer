@@ -8,36 +8,49 @@
 #include <future>
 #include <Windows.h>
 
-//_declspec(thread) int32 value;
-thread_local int32 LThreadId = 0;
-thread_local queue<int32> q;
+#include "ConcurrentQueue.h"
+#include "ConcurrentStack.h"
 
-void ThreadMain(int32 threadId)
+LockQueue<int32> q;
+LockStack<int32> s;
+
+void Push()
 {
-	LThreadId = threadId;
+	while (true)
+	{
+		int32 value = rand() % 100;
+		q.Push(value);
+
+		this_thread::sleep_for(10ms);
+	}
+}
+
+void Pop()
+{
+	while(true)
+	{
+		int32 data = 0;
+		if (q.TryPop(OUT data))
+			cout << data << endl;
+	}
 
 	while (true)
 	{
-		cout << "Hi I'm Thread" << LThreadId << endl;
-		this_thread::sleep_for(1s);
+		int32 data = 0;
+		if (q.TryPop(OUT data))
+			cout << data << endl;
 	}
 
 }
 
 int main()
 {
-	/*thread t;
-	t.get_id();*/
+	thread t1(Push);
+	thread t2(Pop);
+	thread t3(Pop);
 
-	vector<thread> threads;
-
-	for (int32 i = 0; i < 10; i++)
-	{
-		int32 threadId = i + 1;
-		threads.push_back(thread(ThreadMain, threadId));
-	}
-
-	for (thread& t : threads)
-		t.join();
+	t1.join();
+	t2.join();
+	t3.join();
 
 }
