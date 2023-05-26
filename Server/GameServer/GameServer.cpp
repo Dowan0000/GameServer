@@ -8,59 +8,36 @@
 #include <future>
 #include <Windows.h>
 
-atomic<bool> ready;
-int32 value;
+//_declspec(thread) int32 value;
+thread_local int32 LThreadId = 0;
+thread_local queue<int32> q;
 
-void Producer()
+void ThreadMain(int32 threadId)
 {
-	value = 10;
+	LThreadId = threadId;
 
-	ready.store(true, memory_order::memory_order_release);
-	// -------------- 절취선 ----------------
-	// atomic_thread_fence(memory_order::memory_order_release);
-}
+	while (true)
+	{
+		cout << "Hi I'm Thread" << LThreadId << endl;
+		this_thread::sleep_for(1s);
+	}
 
-void Consumer()
-{
-	// atomic_thread_fence(memory_order::memory_order_acquire);
-	// -------------- 절취선 ------------------
-	while (ready.load(memory_order::memory_order_acquire) == false)
-		;
-
-	cout << value << endl;
 }
 
 int main()
 {
-	// Memory Model (정책)
-	// 1) Sequentially Consistent (seq_cst)
-	// 2) Acquire-Release (acquire, release)
-	// 3) Relaxed
+	/*thread t;
+	t.get_id();*/
 
-	ready = false;
-	value = 0;
-	thread t1(Producer);
-	thread t2(Consumer);
-	t1.join();
-	t2.join();
+	vector<thread> threads;
 
+	for (int32 i = 0; i < 10; i++)
+	{
+		int32 threadId = i + 1;
+		threads.push_back(thread(ThreadMain, threadId));
+	}
 
-	// 1) seq_cst (가장 엄격 : 컴파일러 최적화 여지가 적음 = 직관적)
-	//		- 가시성문제, 코드재배치문제 바로 해결됨
-
-
-	// 2) acquire-release
-	//		- 중간
-	//		- release 명령 이전의 메모리 명령들이, 해당 명령 이후로 재배치 되는 것을 금지
-	//		- 그리고 acquire로 같은 변수를 읽는 쓰레드가 있다면,
-	//		   release 이전의 명령들이 acquire 이후에 관찰 가능 (가시성 보장)
-
-
-	// 3) relaxed (자유롭다 : 컴파일러 최적화 여지가 많음 = 직관적이지 않음)
-	//		- 코드재배치 제멋대로 가능, 가시성 해결안됨
-	//		- 가장 기본 조건 (동일 객체에 대한 동일 관전 순서만 보장)
-	//		- 거의 사용하지 않음
-
-
+	for (thread& t : threads)
+		t.join();
 
 }
