@@ -53,4 +53,10 @@ int main()
 	t2.join();
 	t3.join();
 
+	/*LockQueue<int> queue;
+	queue.Push(1);
+	// 삭제
+	LockQueue<int> copyQueue = queue;
+	int value;
+	copyQueue.TryPop(value);*/
 }
