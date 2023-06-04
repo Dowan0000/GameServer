@@ -13,84 +13,59 @@
 #include "RefCounting.h"
 
 
+using KnightRef = TSharedPtr<class Knight>;
+using InventoryRef = TSharedPtr<class Inventory>;
 
-class Wraight : public RefCountable
+class Knight : public RefCountable
 {
 public:
-	int _hp = 150;
-	int _posX = 0;
-	int _posY = 0;
+	Knight()
+	{
+		cout << " 생성 " << endl;
+	}
+	~Knight()
+	{
+		cout << " 소멸 " << endl;
+	}
 
-};
-
-using WraightRef = TSharedPtr<Wraight>;
-
-class Missile : public RefCountable
-{
-public:
-	void SetTarget(WraightRef target)
+	void SetTarget(KnightRef target)
 	{
 		_target = target;
-		//target->AddRef();
 	}
 
-	bool Update()
-	{
-		if (_target == nullptr)
-			return true;
-
-		int posX = _target->_posX;
-		int posY = _target->_posY;
-
-		// target을 쫓아간다
-
-		// target이 죽으면
-		if (_target->_hp == 0)
-		{
-			//_target->ReleaseRef();
-			_target = nullptr;
-			return true;
-		}
-
-		return false;
-	}
-
-	WraightRef _target = nullptr;
+	KnightRef _target = nullptr;
+	InventoryRef _inventory = nullptr;
 };
 
-using MissileRef = TSharedPtr<Missile>;
+class Inventory : public RefCountable
+{
+public:
+	Inventory(KnightRef knight) : _knight(**knight)
+	{
+
+	}
+
+	Knight& _knight;
+};
 
 int main()
 {
-	/*Wraight* wraight = new Wraight();
-	Missile* missile = new Missile();*/
-	WraightRef wraight(new Wraight());
-	wraight->ReleaseRef();	// 정책상 시작할 때만 -1
-	MissileRef missile(new Missile());
-	missile->ReleaseRef();
-	
-	missile->SetTarget(wraight);
+	// 순환(Cycle) 문제
 
-	// 피격
-	wraight->_hp = 0;
-	//delete wraight;
-	//wraight->ReleaseRef();
-	wraight = nullptr;
+	/*KnightRef k1(new Knight());
+	k1->ReleaseRef();
+	KnightRef k2(new Knight());
+	k2->ReleaseRef();
 
-	while (true)
-	{
-		if (missile)
-		{
-			if (missile->Update())
-			{
-				//missile->ReleaseRef();
-				missile = nullptr;
-			}
-		}
-	}
+	k1->SetTarget(k2);
+	k2->SetTarget(k1);
 
+	k1 = nullptr;
+	k2 = nullptr;*/
 
-	//delete missile;
-	//wraight->ReleaseRef();
-	wraight = nullptr;
+	KnightRef k1(new Knight());
+	k1->ReleaseRef();
+
+	k1->_inventory = new Inventory(k1);
+
 }
