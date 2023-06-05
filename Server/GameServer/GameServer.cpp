@@ -12,7 +12,7 @@
 #include "ThreadManager.h"
 #include "RefCounting.h"
 #include "Memory.h"
-
+#include "Allocator.h"
 
 class Knight
 {
@@ -68,10 +68,9 @@ void operator delete[](void* ptr)
 
 int main()
 {
-	
-	Knight* knight = xnew<Knight>(100);
-	
-	xdelete(knight);
+	//vector<Knight, STLAllocator<Knight>> v(100);
+	Vector<Knight> v(100);
 
-	knight->_hp = 100;
+	map<int32, int32> m;
+
 }
