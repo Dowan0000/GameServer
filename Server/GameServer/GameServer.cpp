@@ -26,27 +26,44 @@ public:
 		cout << " 소멸 " << endl;
 	}
 
-	
+	int32 _hp = 100;
+	int32 _mp = 10;
+
 };
 
+// new operator overloading (Global)
+void* operator new(size_t size)
+{
+	cout << "new operator overloading" << size << endl;
+	void* ptr = malloc(size);
+	return ptr;
+}
+
+void operator delete(void* ptr)
+{
+	cout << "delete operator overloading" << endl;
+	free(ptr);
+}
+
+void* operator new[](size_t size)
+{
+	cout << "new[] operator overloading" << size << endl;
+	void* ptr = malloc(size);
+	return ptr;
+}
+
+void operator delete[](void* ptr)
+{
+	cout << "delete[] operator overloading" << endl;
+	free(ptr);
+}
 
 
 int main()
 {
-	// 순환(Cycle) 문제
+	Knight* knight = new Knight();
+	
+	
+	delete knight;
 
-	// unique_ptr
-	// shared_ptr
-	// weak_ptr
-
-	//shared_ptr<Knight> spr(new Knight());
-	shared_ptr<Knight> spr = make_shared<Knight>();
-	weak_ptr<Knight> wpr = spr;
-
-	bool expired = wpr.expired();
-	shared_ptr<Knight> spr2 = wpr.lock();
-	if (spr2 != nullptr)
-	{
-
-	}
 }
