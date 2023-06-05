@@ -11,7 +11,7 @@
 
 #include "ThreadManager.h"
 #include "RefCounting.h"
-
+#include "Memory.h"
 
 
 class Knight
@@ -21,6 +21,12 @@ public:
 	{
 		cout << " 생성 " << endl;
 	}
+
+	Knight(int32 hp) : _hp(hp)
+	{
+		cout << "Knight HP : " << _hp << endl;
+	}
+
 	~Knight()
 	{
 		cout << " 소멸 " << endl;
@@ -30,6 +36,7 @@ public:
 	int32 _mp = 10;
 
 };
+
 
 // new operator overloading (Global)
 void* operator new(size_t size)
@@ -61,9 +68,9 @@ void operator delete[](void* ptr)
 
 int main()
 {
-	Knight* knight = new Knight();
+	Knight* knight = xnew<Knight>(100);
 	
 	
-	delete knight;
+	xdelete(knight);
 
 }
