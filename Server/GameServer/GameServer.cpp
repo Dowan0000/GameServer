@@ -68,8 +68,18 @@ void operator delete[](void* ptr)
 
 int main()
 {
+	SYSTEM_INFO info;
+	GetSystemInfo(&info);
+
+	info.dwPageSize;
+	info.dwAllocationGranularity;
+
+	// OS에 직접 메모리 요청, 해제
+	int* test = (int*)VirtualAlloc(nullptr, 4, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+	*test = 100;
+	VirtualFree(test, 0, MEM_RELEASE);
+
 	Knight* knight = xnew<Knight>(100);
-	
 	
 	xdelete(knight);
 

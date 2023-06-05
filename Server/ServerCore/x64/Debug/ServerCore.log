@@ -1,3 +1,12 @@
 ﻿  pch.cpp
-C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.36.32532\include\xiosbase(311,46): warning C4003: 함수 같은 매크로 호출 'xalloc'에 대해 인수가 부족합니다.
-C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.36.32532\include\xiosbase(311,46): error C2653: 'BaseAllocator': 클래스 또는 네임스페이스 이름이 아닙니다.
+  Allocator.cpp
+  CoreGlobal.cpp
+  CorePch.cpp
+  CoreTLS.cpp
+  DeadLockProfiler.cpp
+  Lock.cpp
+  Memory.cpp
+  RefCounting.cpp
+  ThreadManager.cpp
+  코드를 생성하고 있습니다...
+C:\C++ GameServer\Server\ServerCore\CoreTLS.cpp : fatal  error C1090: PDB API를 호출하지 못했습니다. 오류 코드 '3': C:\C++ GameServer\Server\Libraries\Debug\ServerCore.pdb
