@@ -3,6 +3,10 @@
 #include "CoreTLS.h"
 #include "CoreGlobal.h"
 
+/*------------------
+	ThreadManager
+-------------------*/
+
 ThreadManager::ThreadManager()
 {
 	// Main Thread
@@ -18,10 +22,11 @@ void ThreadManager::Launch(function<void(void)> callback)
 {
 	LockGuard guard(_lock);
 
-	_threads.push_back(thread([=]() {
-		InitTLS();
-		callback();
-		DestroyTLS();
+	_threads.push_back(thread([=]()
+		{
+			InitTLS();
+			callback();
+			DestroyTLS();
 		}));
 }
 

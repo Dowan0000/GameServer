@@ -1,14 +1,14 @@
 #pragma once
 
-/*------------------------
-	  RefCountable
-------------------------*/
+/*---------------
+   RefCountable
+----------------*/
 
 class RefCountable
 {
 public:
-	RefCountable() : _refCount(1) {}
-	virtual ~RefCountable() {}
+	RefCountable() : _refCount(1) { }
+	virtual ~RefCountable() { }
 
 	int32 GetRefCount() { return _refCount; }
 
@@ -27,9 +27,9 @@ protected:
 	atomic<int32> _refCount;
 };
 
-/*--------------------
-	  SharedPtr
---------------------*/
+/*---------------
+   SharedPtr
+----------------*/
 
 template<typename T>
 class TSharedPtr
@@ -69,17 +69,16 @@ public:
 		return *this;
 	}
 
-	bool		operator==(const TSharedPtr& rhs) const {return _ptr == rhs._ptr; }
+	bool		operator==(const TSharedPtr& rhs) const { return _ptr == rhs._ptr; }
 	bool		operator==(T* ptr) const { return _ptr == ptr; }
-	bool	    operator!=(const TSharedPtr& rhs) const { return _ptr != rhs._ptr; }
-	bool	    operator!=(T* ptr) const { return _ptr != ptr; }
+	bool		operator!=(const TSharedPtr& rhs) const { return _ptr != rhs._ptr; }
+	bool		operator!=(T* ptr) const { return _ptr != ptr; }
 	bool		operator<(const TSharedPtr& rhs) const { return _ptr < rhs._ptr; }
 	T*			operator*() { return _ptr; }
 	const T*	operator*() const { return _ptr; }
 				operator T* () const { return _ptr; }
 	T*			operator->() { return _ptr; }
 	const T*	operator->() const { return _ptr; }
-
 
 	bool IsNull() { return _ptr == nullptr; }
 

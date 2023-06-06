@@ -1,53 +1,63 @@
 #pragma once
 
-/*-----------------
-     Allocator
+/*-------------------
+	BaseAllocator
 -------------------*/
 
 class BaseAllocator
 {
 public:
-    static void*    Alloc(int32 size);
-    static void     Release(void* ptr);
-};
-
-/*---------------------
-     StompAllocator
------------------------*/
-
-class StompAllocator
-{
-    enum { PAGE_SIZE = 0x1000 };
-
-public:
-    static void*    Alloc(int32 size);
-    static void     Release(void* ptr);
-
+	static void*	Alloc(int32 size);
+	static void		Release(void* ptr);
 };
 
 /*-------------------
-     STLAllocator
----------------------*/
+	StompAllocator
+-------------------*/
 
-template<typename T>
-class STLAllocator
+class StompAllocator
+{
+	enum { PAGE_SIZE = 0x1000 };
+
+public:
+	static void*	Alloc(int32 size);
+	static void		Release(void* ptr);
+};
+
+/*-------------------
+	PoolAllocator
+-------------------*/
+
+class PoolAllocator
 {
 public:
-    using value_type = T;
+	static void*	Alloc(int32 size);
+	static void		Release(void* ptr);
+};
 
-    STLAllocator() { }
+/*-------------------
+	STL Allocator
+-------------------*/
 
-    template<typename Other>
-    STLAllocator(const STLAllocator<Other>&) { }
+template<typename T>
+class StlAllocator
+{
+public:
+	using value_type = T;
 
-    T* allocate(size_t count)
-    {
+	StlAllocator() { }
+
+	template<typename Other>
+	StlAllocator(const StlAllocator<Other>&) { }
+
+	T* allocate(size_t count)
+	{
 		const int32 size = static_cast<int32>(count * sizeof(T));
-        return static_cast<T*>(xAlloc(size));
+		return static_cast<T*>(xalloc(size));
 	}
 
-    void deallocate(T* ptr, size_t count)
-    {
-        xRelease(ptr);
+	void deallocate(T* ptr, size_t count)
+	{
+		xrelease(ptr);
 	}
 };

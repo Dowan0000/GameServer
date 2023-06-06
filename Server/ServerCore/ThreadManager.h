@@ -3,9 +3,9 @@
 #include <thread>
 #include <functional>
 
-/*-------------------
+/*------------------
 	ThreadManager
---------------------*/
+-------------------*/
 
 class ThreadManager
 {
@@ -20,8 +20,7 @@ public:
 	static void DestroyTLS();
 
 private:
-	Mutex				_lock;
-	vector<thread>		_threads;
-
+	Mutex			_lock;
+	vector<thread>	_threads;
 };
 
