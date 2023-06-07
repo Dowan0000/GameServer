@@ -66,6 +66,33 @@ int main()
 		char ipAddress[16];
 		inet_ntop(AF_INET, &clientAddr.sin_addr, ipAddress, sizeof(ipAddress));
 		cout << "Client Connected IP : " << ipAddress << endl;
+		
+		while (true)
+		{
+			char recvBuffer[100];
+
+			this_thread::sleep_for(1s);
+				
+			int recvLen = recv(clientSocket, recvBuffer, sizeof(recvBuffer), 0);
+			if (recvLen <= 0)
+			{
+				int32 errCode = WSAGetLastError();
+				cout << "recv error: " << errCode << endl;
+				return 0;
+			}
+
+			cout << recvBuffer << endl;
+			cout << "Recv Data! Length: " << recvLen << endl;
+			
+			/*int resultCode = send(clientSocket, recvBuffer, sizeof(recvBuffer), 0);
+			if (resultCode == SOCKET_ERROR)
+			{
+				int32 errCode = WSAGetLastError();
+				cout << "send error: " << errCode << endl;
+				return 0;
+			}*/
+		}
+	
 	}
 
 

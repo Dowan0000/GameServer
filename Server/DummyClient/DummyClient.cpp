@@ -38,6 +38,32 @@ int main()
 
 	while (true)
 	{
+		char sendBuffer[100] = "Hello World!";
+
+		for (int32 i = 0; i < 10; i++)
+		{
+			int resultCode = send(clientSocket, sendBuffer, sizeof(sendBuffer), 0);
+			if (resultCode == SOCKET_ERROR)
+			{
+				int32 errCode = WSAGetLastError();
+				cout << "send error: " << errCode << endl;
+				return 0;
+			}
+		}
+		cout << "Send Data! Length: " << sizeof(sendBuffer) << endl;
+		
+		/*char recvBuffer[1024] = {};
+		int recvLen = recv(clientSocket, recvBuffer, sizeof(recvBuffer), 0);
+		if (recvLen <= 0)
+		{
+			int32 errCode = WSAGetLastError();
+			cout << "recv error: " << errCode << endl;
+			return 0;
+		}
+
+		cout << recvBuffer << endl;
+		cout << "Recv Data! Length: " << recvLen << endl;*/
+
 		this_thread::sleep_for(1s);
 	}
 
