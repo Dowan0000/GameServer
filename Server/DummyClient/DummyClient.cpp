@@ -6,17 +6,22 @@
 #include <WS2tcpip.h>
 #pragma comment(lib, "ws2_32.lib")
 
+void HandleError(const char* msg)
+{
+	int32 errCode = WSAGetLastError();
+	cout << msg << " error: " << errCode << endl;
+}
+
 int main()
 {
 	WSADATA wsaData;
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
 		return 0;
 
-	SOCKET clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+	SOCKET clientSocket = socket(AF_INET, SOCK_DGRAM, 0);
 	if (clientSocket == INVALID_SOCKET)
 	{
-		int32 errCode = WSAGetLastError();
-		cout << "socket error: " << errCode << endl;
+		HandleError("socket");
 		return 0;
 	}
 
@@ -27,42 +32,55 @@ int main()
 	inet_pton(AF_INET, "127.0.0.1", &serverAddr.sin_addr);      // 이걸 쓰자
 	serverAddr.sin_port = htons(7777); // host to network short
 
-	if (connect(clientSocket, (SOCKADDR*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
-	{
-		int32 errCode = WSAGetLastError();
-		cout << "connect error: " << errCode << endl;
-		return 0;
-	}
+	// Connected UDP
+	connect(clientSocket, (SOCKADDR*)&serverAddr, sizeof(serverAddr));
+	// send로 보냄
 
-	cout << "Connected to server" << endl;
+	// ----------------------------
+
 
 	while (true)
 	{
-		char sendBuffer[100] = "Hello World!";
-
-		for (int32 i = 0; i < 10; i++)
+		/*for (int32 i = 0; i < 10; i++)
 		{
-			int resultCode = send(clientSocket, sendBuffer, sizeof(sendBuffer), 0);
+			char sendBuffer[100] = "Hello World!";
+
+			// 나의 IP주소 + 포트번호 설정
+			int resultCode = sendto(clientSocket, sendBuffer, sizeof(sendBuffer), 0, (SOCKADDR*)&serverAddr, sizeof(serverAddr));
 			if (resultCode == SOCKET_ERROR)
 			{
 				int32 errCode = WSAGetLastError();
 				cout << "send error: " << errCode << endl;
 				return 0;
 			}
-		}
-		cout << "Send Data! Length: " << sizeof(sendBuffer) << endl;
+
+			cout << "Send Data! Length: " << sizeof(sendBuffer) << endl;
+		}*/
 		
-		/*char recvBuffer[1024] = {};
-		int recvLen = recv(clientSocket, recvBuffer, sizeof(recvBuffer), 0);
+		char sendBuffer[100] = "Hello World!";
+
+		// Unconnected UDP
+		// int resultCode = sendto(clientSocket, sendBuffer, sizeof(sendBuffer), 0, (SOCKADDR*)&serverAddr, sizeof(serverAddr));
+		
+		// Connected UDP
+		int resultCode = send(clientSocket, sendBuffer, sizeof(sendBuffer), 0);
+
+		SOCKADDR_IN recvAddr;
+		memset(&recvAddr, 0, sizeof(recvAddr));
+		int recvAddrSize = sizeof(recvAddr);
+
+
+		char recvBuffer[1024] = {};
+		//int32 recvLen = recvfrom(clientSocket, recvBuffer, sizeof(recvBuffer), 0, (SOCKADDR*)&recvAddr, &recvAddrSize);
+		int32 recvLen = recv(clientSocket, recvBuffer, sizeof(recvBuffer), 0);
 		if (recvLen <= 0)
 		{
-			int32 errCode = WSAGetLastError();
-			cout << "recv error: " << errCode << endl;
+			HandleError("RecvFrom");
 			return 0;
 		}
 
-		cout << recvBuffer << endl;
-		cout << "Recv Data! Length: " << recvLen << endl;*/
+		cout << "Recv Data! Data: " << recvBuffer << endl;
+		cout << "Recv Data! Length: " << recvLen << endl;
 
 		this_thread::sleep_for(1s);
 	}

@@ -12,6 +12,11 @@
 #include <WS2tcpip.h>
 #pragma comment(lib, "ws2_32.lib")
 
+void HandleError(const char* msg)
+{
+	int32 errCode = WSAGetLastError();
+	cout << msg << " error: " << errCode << endl;
+}
 
 int main()
 {
@@ -19,83 +24,56 @@ int main()
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
 		return 0;
 
-	SOCKET listenSocket = socket(AF_INET, SOCK_STREAM, 0);
-	if (listenSocket == INVALID_SOCKET)
+	SOCKET serverSocket = socket(AF_INET, SOCK_DGRAM, 0);
+	if (serverSocket == INVALID_SOCKET)
 	{
-		int32 errCode = WSAGetLastError();
-		cout << "socket error: " << errCode << endl;
+		HandleError("socket");
 		return 0;
 	}
 
 	SOCKADDR_IN serverAddr;
 	memset(&serverAddr, 0, sizeof(serverAddr));
 	serverAddr.sin_family = AF_INET;
-	serverAddr.sin_addr.S_un.S_addr = htonl(INADDR_ANY); // 니가 알아서 해줘
+	serverAddr.sin_addr.S_un.S_addr = htonl(INADDR_ANY); // host to network long
 	serverAddr.sin_port = htons(7777);
 
-	if (::bind(listenSocket, (SOCKADDR*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
+	if (::bind(serverSocket, (SOCKADDR*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
 	{
-		int32 errCode = WSAGetLastError();
-		cout << "bind error: " << errCode << endl;
+		HandleError("Bind");
 		return 0;
 	}
-
-	if (listen(listenSocket, 10) == SOCKET_ERROR)
-	{
-		int32 errCode = WSAGetLastError();
-		cout << "listen error: " << errCode << endl;
-		return 0;
-	}
-
-	cout << "Waiting for client..." << endl;
 
 	while (true)
 	{
+		char recvBuffer[1024] = {};
+
 		SOCKADDR_IN clientAddr;
 		memset(&clientAddr, 0, sizeof(clientAddr));
-		int32 addrLen = sizeof(clientAddr);
+		int clientAddrSize = sizeof(clientAddr);
 
-		SOCKET clientSocket = accept(listenSocket, (SOCKADDR*)&clientAddr, &addrLen);
-		if (clientSocket == INVALID_SOCKET)
+		this_thread::sleep_for(1s);
+
+		int32 recvLen = recvfrom(serverSocket, recvBuffer, sizeof(recvBuffer), 0, (SOCKADDR*)&clientAddr, &clientAddrSize);
+		if (recvLen <= 0)
 		{
-			int32 errCode = WSAGetLastError();
-			cout << "accept error: " << errCode << endl;
+			HandleError("RecvFrom");
 			return 0;
 		}
 
-		char ipAddress[16];
-		inet_ntop(AF_INET, &clientAddr.sin_addr, ipAddress, sizeof(ipAddress));
-		cout << "Client Connected IP : " << ipAddress << endl;
-		
-		while (true)
+		cout << "Recv Data! Data = " << recvBuffer << endl;
+		cout << "Recv Data! Length = " << recvLen << endl;
+
+		int32 errCode = sendto(serverSocket, recvBuffer, recvLen, 0, (SOCKADDR*)&clientAddr, sizeof(clientAddr));
+		if (errCode == SOCKET_ERROR)
 		{
-			char recvBuffer[100];
-
-			this_thread::sleep_for(1s);
-				
-			int recvLen = recv(clientSocket, recvBuffer, sizeof(recvBuffer), 0);
-			if (recvLen <= 0)
-			{
-				int32 errCode = WSAGetLastError();
-				cout << "recv error: " << errCode << endl;
-				return 0;
-			}
-
-			cout << recvBuffer << endl;
-			cout << "Recv Data! Length: " << recvLen << endl;
-			
-			/*int resultCode = send(clientSocket, recvBuffer, sizeof(recvBuffer), 0);
-			if (resultCode == SOCKET_ERROR)
-			{
-				int32 errCode = WSAGetLastError();
-				cout << "send error: " << errCode << endl;
-				return 0;
-			}*/
+			HandleError("SendTo");
+			return 0;
 		}
-	
+
+		cout << "Send Data! Len = " << recvLen << endl;
 	}
 
 
-	closesocket(listenSocket);
+	closesocket(serverSocket);
 	WSACleanup();
 }
