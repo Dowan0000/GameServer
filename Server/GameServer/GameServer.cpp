@@ -24,58 +24,50 @@ int main()
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
 		return 0;
 
-	SOCKET serverSocket = socket(AF_INET, SOCK_DGRAM, 0);
-	if (serverSocket == INVALID_SOCKET)
+	// Blocking 소켓
+	// accept -> 접속한 클라가 있을 때
+	// connect -> 서버 접속 성공했을 때
+	// send, sendto -> 요청한 데이터를 송신 버퍼에 복사했을 때
+	// recv, recvfrom -> 수신 버퍼에 데이터가 도착했을 때
+
+
+	// Non-Blocking 소켓
+
+	SOCKET listenSocket = socket(AF_INET, SOCK_STREAM, 0);
+	if (listenSocket == INVALID_SOCKET)
 	{
 		HandleError("socket");
 		return 0;
 	}
 
-	// SO_Keeplive = 주기적으로 연결 상태 확인 (TCP Only)
+	u_long on = 1;
+	if (ioctlsocket(listenSocket, FIONBIO, &on) == INVALID_SOCKET)
+		return 0;
 	
-	bool enable = true;
-	setsockopt(serverSocket, SOL_SOCKET, SO_KEEPALIVE, (char*)&enable, sizeof(enable));
+	SOCKADDR_IN serverAddr;
+	memset(&serverAddr, 0, sizeof(serverAddr));
+	serverAddr.sin_family = AF_INET;
+	serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	serverAddr.sin_port = htons(7777);
 	
-	// SO_Linger = 소켓 종료시 남아있는 데이터를 전송할 것인지
-	// onoff = 0이면 바로 closesocket return, 아니면 linger초만큼 대기
-	LINGER linger;
-	linger.l_onoff = 1;
-	linger.l_linger = 5;
-	setsockopt(serverSocket, SOL_SOCKET, SO_LINGER, (char*)&linger, sizeof(linger));
-
-	// Half-close = shutdown()
-	// SO_SEND = send만 막음
-	// SO_RECV = recv만 막음
-	// SO_BOTH = send, recv 모두 막음
-	//::shutdown(serverSocket, SD_SEND);
-
-	// SO_SNDBUF = 송신 버퍼 크기
-	// SO_RCVBUF = 수신 버퍼 크기
-	int32 sendBufSize;
-	int32 optLen = sizeof(sendBufSize);
-	getsockopt(serverSocket, SOL_SOCKET, SO_SNDBUF, (char*)&sendBufSize, &optLen);
-	cout << "SO_SNDBUF: " << sendBufSize << endl;
-
-	int32 recvBufSize;
-	optLen = sizeof(recvBufSize);
-	getsockopt(serverSocket, SOL_SOCKET, SO_RCVBUF, (char*)&recvBufSize, &optLen);
-	cout << "SO_RCVBUF: " << recvBufSize << endl;
-
-	// SO_REUSEADDR = IP주소, 포트 재사용
+	if (::bind(listenSocket, (SOCKADDR*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
 	{
-		bool enable = true;
-		setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, (char*)&enable, sizeof(enable));
+		HandleError("bind");
+		return 0;
 	}
 
-	// IPPROTO_TCP = TCP
-	// TCP_NODELAY = Nagle 알고리즘 작동 여부
-	// 데이터가 충분히 크면 보내고, 그렇지않으면 쌓일때 까지 대기
+	if (listen(listenSocket, SOMAXCONN) == SOCKET_ERROR)
 	{
-		bool enable = true;   // NO_DELAY = true : Nagle 알고리즘 끔
-		setsockopt(serverSocket, IPPROTO_TCP, TCP_NODELAY, (char*)&enable, sizeof(enable));
+		HandleError("listen");
+		return 0;
 	}
 
+	
 
-	closesocket(serverSocket);
+
+
+	
+
+	closesocket(listenSocket);
 	WSACleanup();
 }
