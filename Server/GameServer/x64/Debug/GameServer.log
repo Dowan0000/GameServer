@@ -1,2 +1,3 @@
 ﻿  GameServer.cpp
-LINK : fatal error LNK1104: 'C:\C++ GameServer(2)\Server\Binary\Debug\GameServer.exe' 파일을 열 수 없습니다.
+C:\C++ GameServer(2)\Server\GameServer\GameServer.cpp(103,54): warning C4267: '인수': 'size_t'에서 'DWORD'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  GameServer.vcxproj -> C:\C++ GameServer(2)\Server\Binary\Debug\GameServer.exe
